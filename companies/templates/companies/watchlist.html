@@ -1,0 +1,52 @@
+{% extends "companies/base.html" %}
+
+{% block title %}Obserwowane spółki — US Market Monitor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Obserwowane spółki</h1>
+    <p>Spółki dodane do Twojej listy obserwowanych ({{ watchlist_count }}).</p>
+</div>
+
+{% if companies %}
+    <div class="card card-app">
+        <div class="table-responsive">
+            <table class="table table-app table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Nazwa</th>
+                        <th>Kraj</th>
+                        <th>Sektor</th>
+                        <th>Dodano</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for company in companies %}
+                        <tr>
+                            <td><a href="{% url 'company_detail' company.ticker %}">{{ company.ticker }}</a></td>
+                            <td><a href="{% url 'company_detail' company.ticker %}">{{ company.name }}</a></td>
+                            <td>{{ company.country|default:"—" }}</td>
+                            <td>{{ company.sector|default:"—" }}</td>
+                            <td class="text-muted">{{ company.added_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'remove_from_watchlist' company.ticker %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{% url 'watchlist' %}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Usuń</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        Nie obserwujesz jeszcze żadnych spółek.
+        <a href="{% url 'search' %}" class="alert-link">Przejdź do wyszukiwarki</a>, aby dodać je do listy.
+    </div>
+{% endif %}
+{% endblock %}

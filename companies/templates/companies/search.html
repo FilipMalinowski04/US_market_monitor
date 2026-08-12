@@ -1,0 +1,81 @@
+{% extends "companies/base.html" %}
+
+{% block title %}Wyszukiwarka — US Market Monitor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Wyszukiwarka spółek</h1>
+    <p>Wpisz symbol giełdowy lub nazwę spółki (np. Apple, TSLA).</p>
+</div>
+
+<div class="search-box">
+    <form method="get" class="row g-2">
+        <div class="col-md-8">
+            <input type="text" name="q" value="{{ query }}" class="form-control form-control-lg"
+                   placeholder="Symbol lub nazwa spółki..." autofocus>
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Wyszukaj</button>
+        </div>
+    </form>
+</div>
+
+{% if query %}
+    {% if results %}
+        <h2 class="section-title">Wyniki wyszukiwania</h2>
+        <div class="company-list mb-4">
+            {% for company in results %}
+                <div class="company-item">
+                    <a href="{% url 'company_detail' company.ticker %}">
+                        <span class="ticker">{{ company.ticker }}</span>
+                        <span class="name">{{ company.name }}</span>
+                    </a>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a href="{% url 'company_detail' company.ticker %}" class="btn btn-outline-primary btn-sm">Szczegóły</a>
+                        {% if company.ticker in watched_tickers %}
+                            <span class="badge-watched align-self-center">Obserwowana</span>
+                        {% else %}
+                            <form method="post" action="{% url 'add_to_watchlist' company.ticker %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'search' %}?q={{ query|urlencode }}">
+                                <button type="submit" class="btn btn-success btn-sm">Obserwuj</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning mb-4">Brak wyników dla „{{ query }}”. Spróbuj innej nazwy lub symbolu.</div>
+    {% endif %}
+{% endif %}
+
+<h2 class="section-title">Lista spółek ({{ catalog_count }}) — alfabetycznie</h2>
+
+{% for letter, companies in catalog_groups %}
+    <div class="letter-group">
+        <div class="letter-heading">{{ letter }}</div>
+        <div class="company-list">
+            {% for company in companies %}
+                <div class="company-item">
+                    <a href="{% url 'company_detail' company.ticker %}">
+                        <span class="ticker">{{ company.ticker }}</span>
+                        <span class="name">{{ company.name }}</span>
+                    </a>
+                    <div class="flex-shrink-0">
+                        {% if company.ticker in watched_tickers %}
+                            <span class="badge-watched">Obserwowana</span>
+                        {% else %}
+                            <form method="post" action="{% url 'add_to_watchlist' company.ticker %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'search' %}">
+                                <button type="submit" class="btn btn-success btn-sm">Obserwuj</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
